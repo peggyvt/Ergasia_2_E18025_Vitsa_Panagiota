@@ -232,5 +232,137 @@ curl -X GET localhost:5000/getProducts -d '{"category":"dairy", "email":"user001
 <img src="images/user-get-products-1.jpg"/>
 <img src="images/user-get-products-2.jpg"/>
 
-<h3>Add Products to Basket</h3>
-<p> </p>
+<h3>Add Product to Basket</h3>
+<p>The user is able to add products to their basket. The email is needed in order to identify them in the 'Users' collection. </p>
+
+````python
+uuid = request.headers.get('Authorization') #get uuid from user
+    if is_session_valid(uuid) : #if uuid is valid, then execute the entrypoint
+        user = users.find_one({"email":data['email']})
+        if user != None: #if user exists
+            if user['category'] == 'user': #if user is not an admin
+                product = products.find_one({"id":data['id']}) #find the product in the 'Products' collection
+
+                if product != None: #if product exists
+                    if int(data["quantity"]) <= int(product["stock"]): #check if stock has enough items
+                        cart = user["basket"] #local cart
+                        cart.append({'id':data["id"], 'quantity':data["quantity"]}) #add the product
+
+                        tp = user['basket'][0].get('total_price') + float(data["quantity"])*float(product["price"])
+                        cart[0] = {'total_price':tp} #calculate the new total price of the basket after adding the product's price
+
+                        user = users.update_one( {'email':data["email"]}, 
+                                                {"$set": 
+                                                        {"basket":cart} #set to the collection's basket the local one     
+                                                }
+                                            )
+
+                        #successful message
+                        return Response("Product was added successfully! \nCart: " + json.dumps(cart, indent = 4))
+                    else: #stock not enough
+                        return Response("The requested quantity is exceeding the product's stock.")
+                else: #print error message
+                    return Response("There is no product with that id.")
+            else: #if user is an admin
+                return Response("Admin cannot add products to basket - Login as a user.\n")
+        else: #user does not exist
+            return Response("There isn't a user with that email.")
+    else:  #user not authenticated
+        return Response("User has not been authenticated.", status=401, mimetype='application/json')
+````
+
+<p>In case the product the user's asking exists in the collection, then a local cart is created that has assigned the user's basket and there we append the new product. In that way, the user doesn't lose any possible previous products that they've added during their shopping hours there. Later on, before setting the local cart into the user's basket we check if the quantity they ask for the specific product does not exceed the product's stock. If not, the total price of the cart is calculated and then the cart is set to the user's basket.</p>
+
+<p>Command: </p>
+
+````bash
+curl -X UPDATE localhost:5000/addProductToBasket -d '{"id":"004", "email":"user001@email.com", "quantity":"5"}' -H "Authorization: f313063e-cd45-11eb-8a8f-0800271751e0" -H Content-Type:application/json
+````
+
+<p>Results:</p>
+<img src="images/user-add-product-to-basket.jpg"/>
+
+<h3>Print Basket</h3>
+<p>Through that function the user is able to see the products of their basket. The email is needed in order to identify them in the 'Users' collection. </p>
+
+````python
+uuid = request.headers.get('Authorization') #get uuid from user
+    if is_session_valid(uuid) : #if uuid is valid, then execute the entrypoint
+        user = users.find_one({"email":data['email']})
+        if user != None: #if user exists
+            if user['category'] == 'user': #if user is not an admin
+                return Response("Cart: " + json.dumps(user['basket'], indent = 4))
+            else: #if user is an admin
+                return Response("Admin cannot print basket - Login as a user.\n")
+        else: #user does not exist
+            return Response("There isn't a user with that email.")
+    else: #user not authenticated
+        return Response("User has not been authenticated.", status=401, mimetype='application/json')
+````
+
+<p>Command: </p>
+
+````bash
+curl -X GET localhost:5000/printBasket -d '{"email":"user001@email.com"}' -H "Authorization: 2d58a91a-cd47-11eb-ad15-0800271751e0" -H Content-Type:application/json
+````
+
+<p>Results: </p>
+<img src="images/user-print-basket.jpg"/>
+
+<h3>Print Basket</h3>
+<p>Through that function the user is able to delete products of their basket. The email is needed in order to identify them in the 'Users' collection. </p>
+
+````python
+uuid = request.headers.get('Authorization') #get uuid from user
+    if is_session_valid(uuid) : #if uuid is valid, then execute the entrypoint
+        user = users.find_one({"email":data['email']})
+        if user != None: #if user exists
+            if user['category'] == 'user': #if user is not an admin
+                productBasket = None
+                k=-1
+                product = products.find_one({"id":data['id']})
+
+                if product != None:
+                    for i in range (1, len(user['basket'])): #for each product in basket
+                        id1 = user['basket'][i].get('id') #save the id
+                        if id1 == data['id']: #if the id matches the user's data then the product exists
+                            productBasket = user["basket"][i] #save the product in a variable
+                            k = i #save the index of the product in a variable
+
+                    if productBasket != None: #if the product the user wants to delete exists
+                        basket1 = user["basket"] #create local basket to make changes and then set it to the collection
+
+                        tp = user['basket'][0].get('total_price') - float(user["basket"][k]["quantity"])*float(product["price"]) #calculate the new total price after subtracting the product's price the user wants to delete 
+                        basket1[0] = {'total_price':tp} #insert new total price to local basket
+
+                        basket1.pop(k) #remove the product
+                        
+                        user = users.update_one( {'email':data["email"]}, 
+                                                {"$set": 
+                                                        {"basket":basket1} #set to the collection's basket the local one
+                                                }
+                                            )
+
+                        product_name = product["name"] #insert in var the name of the product in order to print it later
+                        msg = product_name + " was deleted." #delete verification message
+                        return Response(msg, status=200, mimetype='application/json') #successful message and status
+                    else: #product doesn't exist
+                        return Response("The item does not belong in the basket.")
+                else: #print error message
+                    return Response("There is no product with that id.")
+            else: #if user is an admin
+                return Response("Admin cannot delete products from basket - Login as a user.\n")
+        else:
+            return Response("There isn't a user with that email.")
+    else: #user not authenticated
+        return Response("User has not been authenticated.", status=401, mimetype='application/json')
+````
+
+<p>Command: </p>
+
+````bash
+
+````
+
+<p>Results: </p>
+<img src="images/user-delete-product-from-basket.jpg"/>
