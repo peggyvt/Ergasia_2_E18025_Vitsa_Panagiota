@@ -368,3 +368,57 @@ curl -X DELETE localhost:5000/deleteProductFromBasket -d '{"email":"user001@emai
 
 <p>Results: </p>
 <img src="images/user-delete-product-from-basket.jpg"/>
+
+<h3>Buy Basket</h3>
+<p>Through that function the user is able to buy the products of their basket. The email is needed in order to identify them in the 'Users' collection. </p>
+
+````python
+uuid = request.headers.get('Authorization') #get uuid from user
+    if is_session_valid(uuid) : #if uuid is valid, then execute the entrypoint
+        user = users.find_one({"email":data['email']})
+        if user != None: #if user exists
+            if user['category'] == 'user': #if user is not an admin
+                if user != None and len(data['cart_number'])==16:
+                    cart = []
+                    cart = user["basket"]
+
+                    history = []
+                    history = user["historyOrders"] #insert old history orders
+                    history.append(cart) #insert the new order 
+
+                    users.update_one( {'email':data["email"]}, 
+                                            {"$set": 
+                                                    {"historyOrders":history} #set the history orders with the total list
+                                            }
+                                        )
+
+                    users.update_one( {'email':data["email"]},
+                                            {"$set":
+                                                    {"basket":[{'total_price':0}]} #reset user's basket
+                                            }
+                                        )
+
+                    #print the receipt
+                    return Response("Successful purchase!\nReceipt:\n" + json.dumps(cart, indent=4))
+                else: #print error message
+                    if len(data['cart_number'])!=16:
+                        return Response("Invalid card number.")
+            else: #if user is an admin
+                return Response("Admin cannot buy products - Login as a user.\n")
+        else:
+            return Response("There isn't a user with that email.")
+    else: #user not authenticated
+        return Response("User has not been authenticated.", status=401, mimetype='application/json')
+````
+
+<p>If user exists and user's card number is exactly 16 digits, then procceed by creating a local cart and inserting the user's basket. After that we have to create a 'history' array, inserting all the older history orders of the user. The local cart will be inserted ('append' function) in the history orders as a new cart item, since we need a field that holds all of the previous orders of the user. </p>
+<p>Finally, since the purchase is made and the basket of the user must be reset, we just set total price: 0 and the other fields just unset by themselves - therefore the basket is now empty.</p>
+
+<p>Command: </p>
+
+````bash
+curl -X UPDATE localhost:5000/buyBasket -d '{"email":"user001@email.com", "card_number":"4521680047239186"}' -H "Authorization: 0c2d33b8-cd52-11eb-8c7a-0800271751e0" -H Content-Type:application/json
+````
+
+<p>Results: </p>
+<img src="images/user-buy-basket.jpg"/>
