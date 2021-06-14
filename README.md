@@ -51,3 +51,98 @@ curl -X UPDATE localhost:5000/insertProduct -d '{"email":"admin@email.com", "id"
 
 <p>Results: </p>
 <img src="images/admin1.jpg"/>
+
+<h3>Update Product</h3>
+<p>The admin is able to update a product.</p>
+
+````python 
+admin = users.find_one({"email":data['email']})
+    if admin != None: #if user exists
+        if admin['category'] == 'admin':
+            product = products.find_one({"id":data["id"]}) #find product by id
+            if product != None: #if product exists, update the content
+                #set the new values
+                if "name" in data:
+                    product = products.update_one({'id':data["id"]}, {'$set': {'name':data["name"]}}) #set the new name
+                if "price" in data:
+                    product = products.update_one({'id':data["id"]}, {'$set': {'price':data["price"]}}) #set the new price
+                if "description" in data:
+                    product = products.update_one({'id':data["id"]}, {'$set': {'description':data["description"]}}) #set the new description
+                if "stock" in data:
+                    product = products.update_one({'id':data["id"]}, {'$set': {'stock':data["stock"]}}) #set the new stock
+                msg = "Updated successfully"
+                return Response(msg, status=200, mimetype='application/json')
+            else: #if product doesn't exist, print corresponding message
+                return Response("There is no product with that id.", status=500, mimetype='application/json')
+        else: 
+            return Response("Only admin allowed to execute this.") #not an admin category
+    else:
+        return Response("There isn't an admin with that email.") #admin does not exist
+````
+
+<p>Firstly, the admin gives their email in order to validate if they exist and are an admin.</p>
+<p>If the id of the product exists in the collection 'Products', then the product exists and then the program updates any of the fields given.</p><br/>
+
+<p>Command: </p>
+
+````bash
+curl -X UPDATE localhost:5000/updateProduct -d '{"email":"admin@email.com", "id":"005", "price":"0.15", "stock":"80", "description":"fresh peaches"}' -H Content-Type:application/json
+````
+
+<p>Results: </p>
+<img src="images/admin2.jpg"/>
+
+<h3>Delete Product</h3>
+<p>The admin is able to delete a product.</p>
+
+````python 
+admin = users.find_one({"email":data['email']})
+    if admin != None: #if user exists
+        if admin['category'] == 'admin':
+            product = products.find_one({"id":data["id"]}) #find product by id
+            if product != None: #if product exists, delete it
+                products.delete_one(product) #delete
+                product_name = product["name"] #insert in var the name of the product in order to print it later
+                msg = product_name + " was deleted." #delete verification message
+                return Response(msg, status=200, mimetype='application/json') #successful message and status
+            else: #if product doesn't exist, print corresponding message
+                return Response("There is no product with that id.")
+        else: 
+            return Response("Only admin allowed to execute this.") #not an admin category
+    else:
+        return Response("There isn't an admin with that email.") #admin does not exist
+````
+
+<p>Firstly, the admin gives their email in order to validate if they exist and are an admin.</p>
+<p>If the id of the product exists in the collection 'Products', then the product exists and the program deletes it.</p><br/>
+
+<p>Command: </p>
+
+````bash
+curl -X DELETE localhost:5000/deleteProduct -d '{"email":"admin@email.com", "id":"005"}' -H Content-Type:application/json
+````
+
+<p>Results: </p>
+<img src="images/admin3.jpg"/><br/>
+
+<h2>Simple-User Functions</h2>
+<h3>Login</h3>
+<p>The simple user is able to login with their name password and email. The email is needed in order to identify them in the 'Users' collection.</p>
+
+````python 
+#if user exists 
+    user = users.find_one({"email":data['email']})
+    if user != None: #if user exists
+        if user['category'] == 'user': #if user is not an admin
+            if users.find_one( {"$and": [ {"name":data['name']}, {"password":data['password']}] } ):
+                user_uuid = create_session(data['name']) #create user session
+                res = {"uuid": user_uuid, "name": data['name']} #assign data in res variable in order to print them later
+                return Response("Authentication successful. User data: " + json.dumps(res), mimetype='application/json', status=200) #successful message
+            else: #unsuccessful login - status error
+                return Response("Wrong username or password.", status=400, mimetype='application/json')
+        else: 
+            return Response("Admins cannot login - You have to be a user.")
+    else:
+        return Response("There isn't a user with that email.")
+````
+
