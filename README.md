@@ -441,7 +441,7 @@ uuid = request.headers.get('Authorization') #get uuid from user
         return Response("User has not been authenticated.", status=401, mimetype='application/json')
 ````
 
-<p></p>
+<p>It prints the user's field 'historyOrders' that is set on the previous entrypoint.</p>
 
 <p>Command: </p>
 
@@ -451,3 +451,35 @@ curl -X GET localhost:5000/printHistoryOrders -d '{"email":"user001@email.com"}'
 
 <p>Results: </p>
 <img src="images/user-print-history-orders.jpg"/>
+
+<h3>Delete Simple-Users</h3>
+<p>Through that function the user is able to delete themselves or other users. The email is needed in order to identify them in the 'Users' collection. </p>
+
+````python
+uuid = request.headers.get('Authorization') #get uuid from user
+    if is_session_valid(uuid) : #if uuid is valid, then execute the entrypoint
+        user = users.find_one({"email":data["email"]}) #find user by email
+        if user != None: #if user exists
+            if user['category'] == 'user': #if user is not an admin
+                users.delete_one(user) #delete
+                user_name = user["name"] #insert in var the name of the user in order to print it later
+                msg = user_name + " was deleted." #delete verification message
+                return Response(msg, status=200, mimetype='application/json') #successful message and status
+            else: #if user is an admin
+                return Response("Admin cannot delete users - Login as a user.\n")
+        else: #if user doesn't exist, print corresponding message
+            return Response("There is no user with that email.")
+    else: #user not authenticated
+        return Response("User has not been authenticated.", status=401, mimetype='application/json')
+````
+
+<p>If the user exists and they're not an 'admin' category (because admins cannot be deleted), then the user gets deleted from the collection.</p>
+
+<p>Command: </p>
+
+````bash 
+curl -X DELETE localhost:5000/deleteUser -d '{"email":"user001@email.com"}' -H "Authorization: 2bea2512-cd57-11eb-bdb6-0800271751e0" -H Content-Type:application/json
+````
+
+<p>Results: </p>
+<img src="images/delete-user.jpg"/>
