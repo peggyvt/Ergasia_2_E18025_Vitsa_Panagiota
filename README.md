@@ -309,7 +309,7 @@ curl -X GET localhost:5000/printBasket -d '{"email":"user001@email.com"}' -H "Au
 <p>Results: </p>
 <img src="images/user-print-basket.jpg"/>
 
-<h3>Print Basket</h3>
+<h3>Delete Product from Basket</h3>
 <p>Through that function the user is able to delete products of their basket. The email is needed in order to identify them in the 'Users' collection. </p>
 
 ````python
@@ -358,10 +358,12 @@ uuid = request.headers.get('Authorization') #get uuid from user
         return Response("User has not been authenticated.", status=401, mimetype='application/json')
 ````
 
+<p>If the product actually exists, then a for loop starts to search through the user's basket in order to find it. If it exists, the product is assigned in a variable. Then in a local cart the user's basket is assigned and the total price is also reduced. After that, the product is deleted from the local cart ('pop' function) and the local cart is eventually set in the official basket of the user.</p>
+
 <p>Command: </p>
 
 ````bash
-
+curl -X DELETE localhost:5000/deleteProductFromBasket -d '{"email":"user001@email.com", "id":"005"}' -H "Authorization: 9caca6d4-cd4e-11eb-83f6-0800271751e0" -H Content-Type:application/json
 ````
 
 <p>Results: </p>
