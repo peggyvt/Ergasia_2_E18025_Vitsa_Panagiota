@@ -422,3 +422,32 @@ curl -X UPDATE localhost:5000/buyBasket -d '{"email":"user001@email.com", "card_
 
 <p>Results: </p>
 <img src="images/user-buy-basket.jpg"/>
+
+<h3>Print History Orders</h3>
+<p>Through that function the user is able to see the history of the orders they've made. The email is needed in order to identify them in the 'Users' collection. </p>
+
+````python
+uuid = request.headers.get('Authorization') #get uuid from user
+    if is_session_valid(uuid) : #if uuid is valid, then execute the entrypoint
+        user = users.find_one({"email":data['email']})
+        if user != None: #if user exists
+            if user['category'] == 'user': #if user is not an admin then print their history orders
+                return Response("Your order history: \n" + json.dumps(user["historyOrders"], indent=4))
+            else: #if user is an admin
+                return Response("Admin does not have history order.\n")
+        else:
+            return Response("There isn't a user with that email.")
+    else: #user not authenticated
+        return Response("User has not been authenticated.", status=401, mimetype='application/json')
+````
+
+<p></p>
+
+<p>Command: </p>
+
+````bash
+curl -X GET localhost:5000/printHistoryOrders -d '{"email":"user001@email.com"}' -H "Authorization: 4bd55ce2-cd53-11eb-966a-0800271751e0" -H Content-Type:application/json
+````
+
+<p>Results: </p>
+<img src="images/user-print-history-orders.jpg"/>
