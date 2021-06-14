@@ -46,7 +46,7 @@ admin = users.find_one({"email":data['email']})
 <p>Command: </p>
 
 ````bash
-
+curl -X UPDATE localhost:5000/insertProduct -d '{"email":"admin@email.com", "id":"005", "name":"peaches", "category":"fruits", "stock":"60", "price":"0.30"}' -H Content-Type:application/json
 ````
 
 <p>Results: </p>
