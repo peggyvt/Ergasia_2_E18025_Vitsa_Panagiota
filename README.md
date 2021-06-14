@@ -146,3 +146,91 @@ curl -X DELETE localhost:5000/deleteProduct -d '{"email":"admin@email.com", "id"
         return Response("There isn't a user with that email.")
 ````
 
+<p>The admin gives their email in order to validate if they exist and are in the simple user category.</p>
+<p>If they exist, then find the user with the right name-password combination and create their user session - meaning a unique user id (uuid). Having that, the user can enter it while executing a function and that will make sure the session is valid and the user is authenticated. </p><br/>
+
+<p>Command: </p>
+
+````bash
+curl -X POST localhost:5000/login -d '{"name":"user001", "email":"user001@email.com", "password":"user001"}' -H Content-Type:application/json
+````
+
+<p>Results: </p>
+<img src="images/user-login.jpg"/>
+
+<h3>Get Products</h3>
+<p>When a user calls this function, it prints the products they asked. They can only enter one name, category or id at a time. For that, the admin entered some more products in order to have a more successful presentation of the entrypoint: </p>
+<img src="images/new-products.jpg"/>
+
+````python 
+uuid = request.headers.get('Authorization') #get uuid from user
+    if is_session_valid(uuid) : #if uuid is valid, then execute the entrypoint
+        user = users.find_one({"email":data['email']})
+        if user != None: #if user exists
+            if user['category'] == 'user': #if user is not an admin
+                a = 0
+                product_list = []
+                if "name" in data: #product based on name
+                    products1 = products.find({"name":data['name']})
+                    if products1 != 0: #product exists
+                        for product in products1:
+                            product['_id'] = None
+                            product_list.append(product) #add each product to the list
+                            a = 1
+                    
+                    if len(product_list) == 0: #product does not exist
+                        return Response("There are no products with that name.")
+                elif "category" in data: #product based on category
+                    products1 = products.find({"category":data['category']})
+                    if products1 != None: #product exists
+                        for product in products1:
+                            product['_id'] = None
+                            product_list.append(product) #add each product to the list
+                            a = 1
+                        for i in range(len(product_list)): #ascending order with bubblesort
+                            for j in range(0, len(product_list)-i-1):
+                                if product_list[j].get("price") > product_list[j+1].get("price"):
+                                    temp = product_list[j]
+                                    product_list[j] = product_list[j+1]
+                                    product_list[j+1] = temp
+
+                    if len(product_list) == 0: #product does not exist
+                        return Response("There are no products in this category.")
+                elif "id" in data: #product based on id
+                    products1 = products.find({"id":data['id']})
+                    if products1 != 0: #product exists
+                        for product in products1:
+                            product['_id'] = None
+                            product_list.append(product) #add each product to the list
+                            a = 1
+
+                    if len(product_list) == 0: #product does not exist
+                        return Response("There is no product with that id.")
+
+                if a == 1: #if one of the three existed, then print the products' list
+                    return Response(json.dumps(product_list, indent=4), status=200, mimetype='application/json')
+            else: #if user is an admin
+                return Response("Admin cannot get products - Login as a user.\n")
+        else: #user does not exist
+            return Response("There isn't a user with that email.")
+    else:  #user not authenticated
+        return Response("User has not been authenticated.", status=401, mimetype='application/json')
+
+````
+
+<p>If the user enters a specific name then it creates a product list in which there will be passed all the products that have the same name. </p>
+<p>If the user enters a specific category, the code finds the products and enters them into a product list. Then it procceeds to sort them with an ascending bubblesort based on their price. </p>
+<p>If they enter the id and a product exists, it is inserted in the product list and is only one item since we can't have two products with the same id. </p>
+
+<p>Command: </p>
+
+````bash
+curl -X GET localhost:5000/getProducts -d '{"category":"dairy", "email":"user001@email.com"}' -H "Authorization: 437c65d2-cd2f-11eb-9309-0800271751e0" -H Content-Type:application/json
+````
+
+<p>Results: </p>
+<img src="images/user-get-products-1.jpg"/>
+<img src="images/user-get-products-2.jpg"/>
+
+<h3>Add Products to Basket</h3>
+<p> </p>
