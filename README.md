@@ -49,6 +49,20 @@ services:
       - "MONGO_HOSTNAME=mongodb"
 ````
 
+<p>After creating these files, we execute the following commands in order with sudo, and then our containerization is ready to go for a user to execute.</p>
+
+````
+docker build -t flask_img .
+````
+
+````
+docker run -d -p 5000:5000 --name flask flask_img
+````
+
+````
+docker-compose up -d
+````
+
 <br/><p>Subsequently, we will analyze all of the functions that our app.py file contains.</p>
 
 <h2>Basic Functions</h2>
