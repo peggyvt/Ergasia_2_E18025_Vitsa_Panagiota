@@ -6,6 +6,11 @@
 <p>Simple users can login, search for products based on their name, category or id, add products to their basket, see the content of their basket, delete products from the basket or checkout. They can also view their order history, or delete their account.</p>
 <p>Those are all executed with a variety of different entrypoints.</p><br/>
 
+<h2>Containerization</h2>
+<p>After the completion of the code, the next step is to containerize our web service. Containerization is a virtualization of our operating system. It contains our web service and all of its essential libraries and files that it needs in order to execute correctly. Containerization is very useful because it will be easier for the user to run two containers at the same time rather than running them separately. The aforementioned containers are mongodb and the flask service. A new file named docker-compose.yml will be created so that the two services can communicate. </p>
+<p>First, we execute the Dockerfile. </p><br/>
+<p>Subsequently, we will analyze all of the functions that our app.py file contains.</p>
+
 <h2>Basic Functions</h2>
 <p>First of, we've created some basic functions. Those are to help us create the user session, check validity of a specific session, get the content of both collections (Users, Products) and then two extra functions to create admins or simple users. We only have one admin and one user - though we can add more if we want.</p>
 
