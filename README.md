@@ -8,8 +8,48 @@
 
 <h2>Containerization</h2>
 <p>After the completion of the code, the next step is to containerize our web service. Containerization is a virtualization of our operating system. It contains our web service and all of its essential libraries and files that it needs in order to execute correctly. Containerization is very useful because it will be easier for the user to run two containers at the same time rather than running them separately. The aforementioned containers are mongodb and the flask service. A new file named docker-compose.yml will be created so that the two services can communicate. </p>
-<p>First, we execute the Dockerfile. </p><br/>
-<p>Subsequently, we will analyze all of the functions that our app.py file contains.</p>
+<p>First, we execute the Dockerfile. Image is ubuntu:18.04. The essential installations are there for the user, then creating a directory for the project and copying inside the app.py file. It's using the port 5000.</p>
+
+````python 
+FROM ubuntu:18.04
+RUN apt-get update
+RUN apt-get install -y python3 python3-pip
+RUN pip3 install --upgrade pip
+RUN pip3 install flask pymongo
+RUN mkdir /project2
+RUN mkdir -p /project2/data
+COPY app.py /project2/app.py
+EXPOSE 5000
+WORKDIR /project2
+ENTRYPOINT [ "python3","-u","app.py" ]
+````
+
+<p>The docker-compose.yml file specifies the information of our containers, providing image name, container name, ports etc.</p>
+
+````python
+version: '2'
+services:
+  mongodb:
+    image: mongo
+    restart: always
+    container_name: mongodb2
+    ports:
+    - 27017:27017
+    volumes:
+    - ./data
+  flask-service:
+    image: flask_img
+    restart: always
+    container_name: flask2
+    depends_on:
+      - mongodb
+    ports:
+      - 5000:5000
+    environment:
+      - "MONGO_HOSTNAME=mongodb"
+````
+
+<br/><p>Subsequently, we will analyze all of the functions that our app.py file contains.</p>
 
 <h2>Basic Functions</h2>
 <p>First of, we've created some basic functions. Those are to help us create the user session, check validity of a specific session, get the content of both collections (Users, Products) and then two extra functions to create admins or simple users. We only have one admin and one user - though we can add more if we want.</p>
