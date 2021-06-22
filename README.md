@@ -50,7 +50,7 @@ services:
       - "MONGO_HOSTNAME=mongodb"
 ````
 
-<p>After creating these files, we execute the following command with sudo, and then our containerization is ready to go for a user to execute.</p>
+<p>After creating these files, we execute the following command with sudo, and then our containerization is ready to go for the user to execute.</p>
 
 ````
 docker-compose up -d
