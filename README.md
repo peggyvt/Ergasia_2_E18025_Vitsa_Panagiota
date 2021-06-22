@@ -14,11 +14,11 @@
 FROM ubuntu:18.04
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip
-RUN pip3 install --upgrade pip
 RUN pip3 install flask pymongo
 RUN mkdir /project2
 RUN mkdir -p /project2/data
 COPY app.py /project2/app.py
+ADD data /project2/data
 EXPOSE 5000
 WORKDIR /project2
 ENTRYPOINT [ "python3","-u","app.py" ]
@@ -32,32 +32,25 @@ services:
   mongodb:
     image: mongo
     restart: always
-    container_name: mongodb2
+    container_name: mongodb
     ports:
     - 27017:27017
     volumes:
-    - ./data
+    - ./mongodb/data:/data/db 
   flask-service:
-    image: flask_img
-    restart: always
-    container_name: flask2
-    depends_on:
+    build:
+      context: ./flask 
+    restart: always 
+    container_name: flask 
+    depends_on: 
       - mongodb
     ports:
       - 5000:5000
-    environment:
+    environment: 
       - "MONGO_HOSTNAME=mongodb"
 ````
 
-<p>After creating these files, we execute the following commands in order with sudo, and then our containerization is ready to go for a user to execute.</p>
-
-````
-docker build -t flask_img .
-````
-
-````
-docker run -d -p 5000:5000 --name flask flask_img
-````
+<p>After creating these files, we execute the following command with sudo, and then our containerization is ready to go for a user to execute.</p>
 
 ````
 docker-compose up -d
