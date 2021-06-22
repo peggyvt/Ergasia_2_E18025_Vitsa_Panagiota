@@ -4,9 +4,12 @@ from flask import Flask, request, jsonify, redirect, Response
 import json
 import uuid
 import time
+import os, sys
+sys.path.append('./data')
 
 #connect to our local MongoDB
-client = MongoClient('mongodb://localhost:27017/')
+mongodb_hostname = os.environ.get("MONGO_HOSTNAME","localhost")
+client = MongoClient('mongodb://'+mongodb_hostname+':27017/')
 
 #choose database
 db = client['DSMarkets']
