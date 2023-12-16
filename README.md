@@ -1,4 +1,4 @@
-<h1>Ergasia_2_E18025_Vitsa_Panagiota</h1>
+<h1>Market System</h1>
 
 <h2>Introduction</h2>
 <p>This project is made possible using mongodb database, python and flask. The execution of this application took place in linux, kali. It is written in python 3, implementing various entrypoints, such as get, post, update and delete.</p><br/>
